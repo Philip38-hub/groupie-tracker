@@ -9,80 +9,120 @@
 </head>
 <body>
     <header>
-     <div id = "header" class="container text-center">
-        <h1>Groupie Trackers</h1>
-     </div>
+        <div id="header" class="container text-center">
+            <h1>Groupie Trackers</h1>
+        </div>
     </header>
 
     <main>
-      <div class="container-fluid">
-        <form class="d-flex" role="search" onsubmit="return false;">
-          <input class="form-control me-2" id="searchInput" type="search" placeholder="Search" aria-label="Search">
-          <button class="btn btn-outline-success" id="searchBtn" type="button">Search</button>
-        </form>
-      </div>
-      <div class="container mt-5">
-        <div class="row" id="artistCards">
-            {{range .}}
-            <div class="col-md-4 artist-card" data-name="{{.Name}}">
-                <div class="card">
-                    <img src="{{.Image}}" class="card-img-top" alt="{{.Name}}">
-                    <div class="card-body">
-                        <h5 class="card-title">{{.Name}}</h5>
-                        <p class="card-text">First album: {{.FirstAlbum}}</p>
-                        <p class="card-text">Members: {{range .Members}}{{.}}, {{end}}</p> 
-                        <a href="\locations" class="btn btn-primary">Locations</a>
-                        <a href="\dates" class="btn btn-primary">Dates</a>
-                        <a href="\relations" class="btn btn-primary">Relations</a>
+        <div class="container-fluid">
+            <form class="d-flex" role="search" onsubmit="return false;">
+                <input class="form-control me-2" id="searchInput" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success" id="searchBtn" type="button">Search</button>
+            </form>
+        </div>
+        <div class="container mt-5">
+            <div class="row" id="artistCards">
+                {{range .}}
+                <div class="col-md-4 artist-card" data-name="{{.Name}}">
+                    <div class="card">
+                        <img src="{{.Image}}" class="card-img-top" alt="{{.Name}}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{.Name}}</h5>
+                            <p class="card-text">First album: {{.FirstAlbum}}</p>
+                            <p class="card-text">Members: {{range .Members}}{{.}}, {{end}}</p> 
+                            <button class="btn btn-primary locationBtn" data-id="{{.ID}}">Show Locations</button>
+                        </div>
                     </div>
                 </div>
+                {{end}}
             </div>
-            {{end}}
         </div>
-      </div>
-  </main>
+    </main>
 
-  <footer>
-      <div class="container text-center" id="footer">
-          <div class="row">
-              <p>&copy; 2024 Groupie Trackers. All rights reserved.</p>
-          </div>
-      </div>
-  </footer>
+    <footer>
+        <div class="container text-center" id="footer">
+            <div class="row">
+                <p>&copy; 2024 Groupie Trackers. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Modal for displaying location data -->
+    <div class="modal fade" id="locationModal" tabindex="-1" aria-labelledby="locationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="locationModalLabel">Location Data</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="locationModalBody">
+                    <!-- Location data will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
 
-  <!-- Add the JavaScript here for search functionality -->
-  <script>
-      document.getElementById('searchBtn').addEventListener('click', function() {
-          const searchQuery = document.getElementById('searchInput').value.toLowerCase();
-          const artistCards = document.querySelectorAll('.artist-card');
-          
-          artistCards.forEach(card => {
-              const artistName = card.getAttribute('data-name').toLowerCase();
-              if (artistName.includes(searchQuery)) {
-                  card.style.display = 'block'; // Show matching card
-              } else {
-                  card.style.display = 'none'; // Hide non-matching card
-              }
-          });
-      });
-
-      // Add hover animation using JavaScript
-      const cardLinks = document.querySelectorAll('.card a');
-      
-      cardLinks.forEach(link => {
-          link.addEventListener('mouseover', function() {
-              link.style.transform = 'scale(1.1)';
-              link.style.transition = 'transform 0.3s ease, color 0.3s ease';
-              link.style.color = '#ff6347'; // Change color on hover
-          });
-
-          link.addEventListener('mouseout', function() {
-              link.style.transform = 'scale(1)';
-              link.style.color = ''; // Reset color on mouse out
-          });
-      });
-  </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <script>
+        document.getElementById('searchBtn').addEventListener('click', function() {
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            const artistCards = document.querySelectorAll('.artist-card');
+            
+            artistCards.forEach(card => {
+                const artistName = card.getAttribute('data-name').toLowerCase();
+                if (artistName.includes(searchQuery)) {
+                    card.style.display = 'block'; // Show matching card
+                } else {
+                    card.style.display = 'none'; // Hide non-matching card
+                }
+            });
+        });
+    
+        document.querySelectorAll('.locationBtn').forEach(button => {
+            button.addEventListener('click', function() {
+                const artistId = this.getAttribute('data-id');
+                console.log(artistId);
+    
+                fetch(`/locations?id=${artistId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        const locationModalBody = document.getElementById('locationModalBody');
+                        let html = '<table class="table table-striped"><thead><tr><th>Location</th><th>Date</th></tr></thead><tbody>';
+    
+                        if (data.datesLocations) {
+                            for (const [location, dates] of Object.entries(data.datesLocations)) {
+                                dates.forEach(date => {
+                                    html += `<tr><td>${location}</td><td>${date}</td></tr>`;
+                                });
+                            }
+                        } else {
+                            html = '<tr><td colspan="2">No data available</td></tr>';
+                        }
+    
+                        html += '</tbody></table>';
+                        locationModalBody.innerHTML = html;
+    
+                        const locationModal = new bootstrap.Modal(document.getElementById('locationModal'));
+                        locationModal.show();
+                    })
+                    .catch(error => {
+                        console.error('Error fetching location data:', error);
+                        const locationModalBody = document.getElementById('locationModalBody');
+                        locationModalBody.innerHTML = '<p>Error fetching data. Please try again later.</p>';
+                        
+                        const locationModal = new bootstrap.Modal(document.getElementById('locationModal'));
+                        locationModal.show();
+                    });
+            });
+        });
+    </script>
+    
 </body>
 </html>

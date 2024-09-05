@@ -32,8 +32,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/":
 		handlers.IndexHandler(w, r)
-	case "/ascii-art":
-		// handlers.AsciiArtHandler(w, r)
+	case "/locations":
+		handlers.LocationsHandler(w, r)
 	default:
 		// 	handlers.ErrorHandler(w, r, http.StatusNotFound, []string{"Page not found"})
 	}

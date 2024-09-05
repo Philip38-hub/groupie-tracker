@@ -15,4 +15,11 @@ body {
 
 main {
     flex: 1;
+    overflow-y: auto;
+}
+#header {
+    flex-shrink: 0;
+}
+#footer {
+    flex-shrink: 0;
 }

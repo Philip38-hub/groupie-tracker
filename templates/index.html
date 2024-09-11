@@ -53,11 +53,11 @@
         <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="locationModalLabel">Location Data</h5>
+                    <h5 class="modal-title" id="locationModalLabel">Location and Date Data</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="locationModalBody">
-                    <!-- Location data will be injected here -->
+                    <!-- Location and date data will be injected here -->
                 </div>
             </div>
         </div>
@@ -81,47 +81,72 @@
         });
     
         document.querySelectorAll('.locationBtn').forEach(button => {
-            button.addEventListener('click', function() {
-                const artistId = this.getAttribute('data-id');
-                console.log(artistId);
-    
-                fetch(`/locations?id=${artistId}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        const locationModalBody = document.getElementById('locationModalBody');
-                        let html = '<table class="table table-striped"><thead><tr><th>Location</th><th>Date</th></tr></thead><tbody>';
-    
-                        if (data.datesLocations) {
-                            for (const [location, dates] of Object.entries(data.datesLocations)) {
-                                dates.forEach(date => {
-                                    html += `<tr><td>${location}</td><td>${date}</td></tr>`;
-                                });
-                            }
-                        } else {
-                            html = '<tr><td colspan="2">No data available</td></tr>';
-                        }
-    
-                        html += '</tbody></table>';
-                        locationModalBody.innerHTML = html;
-    
-                        const locationModal = new bootstrap.Modal(document.getElementById('locationModal'));
-                        locationModal.show();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching location data:', error);
-                        const locationModalBody = document.getElementById('locationModalBody');
-                        locationModalBody.innerHTML = '<p>Error fetching data. Please try again later.</p>';
+        button.addEventListener('click', function() {
+            const artistId = this.getAttribute('data-id');
+            
+            // Clear previous data
+            const locationModalBody = document.getElementById('locationModalBody');
+            locationModalBody.innerHTML = '<table class="table table-striped"><thead><tr><th>Location</th><th>Date</th></tr></thead><tbody id="locationTableBody"></tbody></table>';
+
+            // Fetch location data first
+            fetch(`/locations?id=${artistId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(locationData => {
+                    console.log('Received location data:', locationData);
+                    const locationTableBody = document.getElementById('locationTableBody');
+                    let html = '';
+
+                    // Check if there are locations
+                    if (locationData.locations && Array.isArray(locationData.locations)) {
+                        locationData.locations.forEach((location, index) => {
+                            html += `<tr><td>${location}</td><td id="date-${index}">Loading...</td></tr>`;
+                        });
+                        locationTableBody.innerHTML = html;
                         
-                        const locationModal = new bootstrap.Modal(document.getElementById('locationModal'));
-                        locationModal.show();
-                    });
-            });
+                        // Fetch date data based on the artist ID
+                        return fetch(`/dates?id=${artistId}`);
+                    } else {
+                        locationTableBody.innerHTML = '<tr><td colspan="2">No location data available</td></tr>';
+                        throw new Error('No location data available');
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch date data');
+                    }
+                    return response.json();
+                })
+                .then(datesData => {
+                    console.log('Received date data:', datesData);
+                    if (datesData.Dates && Array.isArray(datesData.Dates)) {
+                        datesData.Dates.forEach((date, index) => {
+                            const dateCell = document.getElementById(`date-${index}`);
+                            if (dateCell) {
+                                dateCell.innerText = date;
+                            }
+                        });
+                    } else {
+                        // Handle case where dates data is not as expected
+                        document.querySelectorAll('[id^="date-"]').forEach(dateCell => {
+                            dateCell.innerText = 'No dates available';
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    locationModalBody.innerHTML = '<p>Error fetching data. Please try again later.</p>';
+                });
+
+            // Show the modal after the data is fetched
+            const locationModal = new bootstrap.Modal(document.getElementById('locationModal'));
+            locationModal.show();
         });
+    });
     </script>
     
 </body>

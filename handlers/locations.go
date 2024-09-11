@@ -4,13 +4,16 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 )
 
-// Define a struct to match the structure of the API response
-type DateLocation struct {
-	ID int `json:"id"`
-	DatesLocations map[string][]string `json:"datesLocations"`
+type Locations struct {
+	Index []struct {
+		ID        int      `json:"id"`
+		Locations []string `json:"locations"`
+		Dates     string   `json:"dates"`
+	} `json:"index"`
 }
 
 func LocationsHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +44,7 @@ func LocationsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var locations map[string]DateLocation
+	var locations Locations
 	err = json.Unmarshal(body, &locations)
 	if err != nil {
 		http.Error(w, "Failed to parse JSON", http.StatusInternalServerError)
@@ -49,12 +52,28 @@ func LocationsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find the location data for the requested artist ID
-	locationData, ok := locations[artistID]
-	if !ok {
+	var locationData struct {
+		ID        int      `json:"id"`
+		Locations []string `json:"locations"`
+		Dates     string   `json:"dates"`
+	}
+	found := false
+	for _, loc := range locations.Index {
+		id, err := strconv.Atoi(artistID)
+		if err != nil {
+			http.Error(w, "Invalid artist ID", http.StatusBadRequest)
+			return
+		}
+		if loc.ID == id {
+			locationData = loc
+			found = true
+			break
+		}
+	}
+	if !found {
 		http.Error(w, "Artist ID not found", http.StatusNotFound)
 		return
 	}
-
 	// Return the location data as JSON
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(locationData); err != nil {

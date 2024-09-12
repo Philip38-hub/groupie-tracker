@@ -12,15 +12,15 @@
         <div id="header" class="container text-center">
             <h1>Groupie Trackers</h1>
         </div>
-    </header>
-
-    <main>
         <div class="container-fluid">
             <form class="d-flex" role="search" onsubmit="return false;">
                 <input class="form-control me-2" id="searchInput" type="search" placeholder="Search" aria-label="Search">
                 <button class="btn btn-outline-success" id="searchBtn" type="button">Search</button>
             </form>
         </div>
+    </header>
+
+    <main>
         <div class="container mt-5">
             <div class="row" id="artistCards">
                 {{range .}}
@@ -53,7 +53,7 @@
         <div class="modal-dialog modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="locationModalLabel">Location and Date Data</h5>
+                    <h5 class="modal-title" id="locationModalLabel">Concert Locations & Dates</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="locationModalBody">
@@ -66,19 +66,48 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     
     <script>
-        document.getElementById('searchBtn').addEventListener('click', function() {
-            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+
+        // Listen for input changes in the search field
+        document.getElementById('searchInput').addEventListener('input', function() {
+            const searchQuery = this.value.toLowerCase();
             const artistCards = document.querySelectorAll('.artist-card');
-            
+            let found = false;
+
             artistCards.forEach(card => {
                 const artistName = card.getAttribute('data-name').toLowerCase();
                 if (artistName.includes(searchQuery)) {
                     card.style.display = 'block'; // Show matching card
+                    found = true; // At least one match is found
                 } else {
                     card.style.display = 'none'; // Hide non-matching card
                 }
             });
+
+            const noResultsMessage = document.getElementById('noResultsMessage');
+            
+            if (searchQuery === '') {
+                // Show all cards if the search query is cleared
+                artistCards.forEach(card => card.style.display = 'block');
+                if (noResultsMessage) noResultsMessage.style.display = 'none'; // Hide the no-results message
+            } else if (!found) {
+                // Show no-results message if no match is found
+                if (!noResultsMessage) {
+                    // Create the message if it doesn't exist
+                    const message = document.createElement('div');
+                    message.id = 'noResultsMessage';
+                    message.classList.add('alert', 'alert-warning', 'mt-3');
+                    message.innerText = 'No artists found matching your search.';
+                    document.getElementById('artistCards').appendChild(message);
+                } else {
+                    noResultsMessage.style.display = 'block'; // Display the message if it exists
+                }
+            } else if (found && noResultsMessage) {
+                // Hide the no-results message if results are found
+                noResultsMessage.style.display = 'none';
+            }
         });
+
+
     
         document.querySelectorAll('.locationBtn').forEach(button => {
         button.addEventListener('click', function() {
@@ -123,8 +152,8 @@
                 })
                 .then(datesData => {
                     console.log('Received date data:', datesData);
-                    if (datesData.Dates && Array.isArray(datesData.Dates)) {
-                        datesData.Dates.forEach((date, index) => {
+                    if (datesData.dates && Array.isArray(datesData.dates)) {
+                        datesData.dates.forEach((date, index) => {
                             const dateCell = document.getElementById(`date-${index}`);
                             if (dateCell) {
                                 dateCell.innerText = date;

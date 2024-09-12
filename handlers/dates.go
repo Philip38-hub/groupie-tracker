@@ -2,7 +2,6 @@ package groupie
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -76,7 +75,7 @@ func DatesHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Artist ID not found", http.StatusNotFound)
 		return
 	}
-	fmt.Println(datesData)
+
 	// Return the dates data as JSON
 	w.Header().Set("Access-Control-Allow-Origin", "http://127.0.0.1:8080")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")

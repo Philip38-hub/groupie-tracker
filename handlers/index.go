@@ -49,14 +49,6 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Decode the JSON response directly
-	// var artists []Artist
-	// err = json.NewDecoder(resp.Body).Decode(&artists)
-	// if err != nil {
-	// 	http.Error(w, "Failed to parse JSON: "+err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
-
 	// Load and parse the template
 	tmpl, err := template.ParseFiles("templates/index.html")
 	if err != nil {

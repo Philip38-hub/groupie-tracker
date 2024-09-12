@@ -1,3 +1,0 @@
-package groupie
-
-//some code

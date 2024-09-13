@@ -2,6 +2,7 @@ package groupie
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -17,10 +18,13 @@ type Dates struct {
 }
 
 func DatesHandler(w http.ResponseWriter, r *http.Request) {
+	var error []string
 	// Get the artist ID from the query parameters
 	artistID := r.URL.Query().Get("id")
 	if artistID == "" {
-		http.Error(w, "Missing artist ID", http.StatusBadRequest)
+		fmt.Println(w, "Missing artist ID", http.StatusMethodNotAllowed)
+		error = append(error, "Missing artist ID")
+		ErrorHandler(w, r, http.StatusMethodNotAllowed, error)
 		return
 	}
 
@@ -32,7 +36,9 @@ func DatesHandler(w http.ResponseWriter, r *http.Request) {
 	// Make the GET request to fetch dates data
 	resp, err := client.Get("https://groupietrackers.herokuapp.com/api/dates") // Update with the correct URL
 	if err != nil {
-		http.Error(w, "Failed to fetch data: "+err.Error(), http.StatusInternalServerError)
+		fmt.Println(w, "Failed to fetch data: "+err.Error(), http.StatusInternalServerError)
+		error = append(error, "Internal Server Error")
+		ErrorHandler(w, r, http.StatusInternalServerError, error)
 		return
 	}
 	defer resp.Body.Close()
@@ -40,7 +46,9 @@ func DatesHandler(w http.ResponseWriter, r *http.Request) {
 	// Read and parse the JSON response
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		http.Error(w, "Failed to read response", http.StatusInternalServerError)
+		fmt.Println(w, "Failed to read response", http.StatusInternalServerError)
+		error = append(error, "Internal Server Error")
+		ErrorHandler(w, r, http.StatusInternalServerError, error)
 		return
 	}
 
@@ -48,6 +56,8 @@ func DatesHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &dates)
 	if err != nil {
 		http.Error(w, "Failed to parse JSON", http.StatusInternalServerError)
+		error = append(error, "Internal Server Error")
+		ErrorHandler(w, r, http.StatusInternalServerError, error)
 		return
 	}
 
@@ -61,6 +71,8 @@ func DatesHandler(w http.ResponseWriter, r *http.Request) {
 		id, err := strconv.Atoi(artistID)
 		if err != nil {
 			http.Error(w, "Invalid artist ID", http.StatusBadRequest)
+			error = append(error, "Invalid artists ID")
+			ErrorHandler(w, r, http.StatusBadRequest, error)
 			return
 		}
 		if date.ID == id {
@@ -72,7 +84,9 @@ func DatesHandler(w http.ResponseWriter, r *http.Request) {
 
 	// If the artist ID is not found, return an error
 	if !found {
-		http.Error(w, "Artist ID not found", http.StatusNotFound)
+		fmt.Println(w, "Artist ID not found", http.StatusBadRequest)
+		error = append(error, "Artist ID not found")
+		ErrorHandler(w, r, http.StatusBadRequest, error)
 		return
 	}
 
@@ -82,6 +96,9 @@ func DatesHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(datesData); err != nil {
-		http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
+		fmt.Println(w, "Failed to encode JSON", http.StatusInternalServerError)
+		error = append(error, "Internal Server Error")
+		ErrorHandler(w, r, http.StatusInternalServerError, error)
+		return
 	}
 }

@@ -3,15 +3,18 @@
 html,
 body { 
     display: flex;
+    flex: 1;
     flex-direction: column;
     height: 100%;
     margin: 0;
     padding: 0;
     overflow: hidden;
+    background-image: url("/static/background.jpg");
+    background-size: cover;       /* Ensure the image covers the entire page */
+    background-position: center;  /* Center the background image */
+    background-repeat: no-repeat; /* Prevent the image from repeating */
+    background-attachment: fixed; 
 }
-body { 
-   flex: 1;
-} 
 
 main {
     flex: 1;
@@ -19,6 +22,7 @@ main {
 }
 #header {
     flex-shrink: 0;
+    padding: 20px;
 }
 #footer {
     flex-shrink: 0;

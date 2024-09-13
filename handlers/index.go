@@ -2,6 +2,7 @@ package groupie
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 
 // Define a struct to match the structure of the API response
 type Artist struct {
-	ID 			int `json:"id"`
+	ID           int      `json:"id"`
 	Image        string   `json:"image"`
 	Name         string   `json:"name"`
 	CreationDate int      `json:"creationDate"`
@@ -22,6 +23,7 @@ type Artist struct {
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	var error []string
 	// Create a custom HTTP client with a timeout
 	client := &http.Client{
 		Timeout: 10 * time.Second, // 10-second timeout
@@ -30,7 +32,9 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	// Make the GET request with the custom client
 	resp, err := client.Get("https://groupietrackers.herokuapp.com/api/artists")
 	if err != nil {
-		http.Error(w, "Failed to fetch data: "+err.Error(), http.StatusInternalServerError)
+		fmt.Println(w, "Failed to get data from api", http.StatusInternalServerError)
+		error = append(error, "Internal Server Error")
+		ErrorHandler(w, r, http.StatusInternalServerError, error)
 		return
 	}
 	defer resp.Body.Close()
@@ -38,27 +42,36 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	// Read and parse the JSON response
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		http.Error(w, "Failed to read response", http.StatusInternalServerError)
+		fmt.Println(w, "Failed to read response", http.StatusInternalServerError)
+		error = append(error, "Internal Server Error")
+		ErrorHandler(w, r, http.StatusInternalServerError, error)
 		return
 	}
 	// fmt.Println(string(body))
 	var artists []Artist
 	err = json.Unmarshal(body, &artists)
 	if err != nil {
-		http.Error(w, "Failed to parse JSON", http.StatusInternalServerError)
+		fmt.Println(w, "Failed to parse JSON", http.StatusInternalServerError)
+		error = append(error, "Internal Server Error")
+		ErrorHandler(w, r, http.StatusInternalServerError, error)
 		return
 	}
 
 	// Load and parse the template
 	tmpl, err := template.ParseFiles("templates/index.html")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(w, err.Error(), http.StatusInternalServerError)
+		error = append(error, "Internal Server Error")
+		ErrorHandler(w, r, http.StatusInternalServerError, error)
 		return
 	}
 
 	// Execute the template with the data
 	err = tmpl.Execute(w, artists)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fmt.Println(w, err.Error(), http.StatusInternalServerError)
+		error = append(error, "Internal Server Error")
+		ErrorHandler(w, r, http.StatusMethodNotAllowed, error)
+		return
 	}
 }

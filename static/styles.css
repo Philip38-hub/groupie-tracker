@@ -23,7 +23,9 @@ main {
 #header {
     flex-shrink: 0;
     padding: 20px;
+    background-color: aliceblue;
 }
 #footer {
     flex-shrink: 0;
+    background-color: aliceblue;
 }

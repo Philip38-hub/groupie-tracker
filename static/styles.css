@@ -1,5 +1,3 @@
-/* Add this to your style.css */
-
 html,
 body { 
     display: flex;
@@ -20,12 +18,23 @@ main {
     flex: 1;
     overflow-y: auto;
 }
+
 #header {
     flex-shrink: 0;
     padding: 20px;
-    background-color: aliceblue;
+    background-color: transparent; /* Make the background transparent */
 }
+
 #footer {
     flex-shrink: 0;
-    background-color: aliceblue;
+    background-color: transparent; /* Make the background transparent */
+}
+
+/* Add this for the h1 inside the header */
+#header h1 {
+    color: aliceblue; /* Apply the color to the text */
+}
+
+#footer p {
+    color: aliceblue; /* Apply the color to the text */
 }

@@ -3,6 +3,7 @@ package groupie
 
 import (
 	"html/template"
+	"log"
 	"net/http"
 )
 
@@ -15,7 +16,7 @@ func ErrorHandler(w http.ResponseWriter, r *http.Request, code int, errors []str
 	w.WriteHeader(code)
 	tmpl, err := template.ParseFiles("templates/error.html")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Failed to parse template: %s", err)
 		return
 	}
 

@@ -129,7 +129,7 @@ main {
         flex-direction: column; /* Stack buttons vertically */
     }
     .btn {
-        margin: 10px; /* Add margin between buttons */
+        margin-right: 30px; /* Add margin between buttons */
     }    
 }
 

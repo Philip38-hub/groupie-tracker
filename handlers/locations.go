@@ -2,7 +2,7 @@ package groupie
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"io"
 	"net/http"
 	"strconv"
@@ -18,11 +18,16 @@ type Locations struct {
 }
 
 func LocationsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		log.Printf("Invalid method: %s", r.Method)
+		http.Error(w, "Invalid method", http.StatusMethodNotAllowed)
+		return
+	}
 	var error []string
 	// Get the artist ID from the query parameters
 	artistID := r.URL.Query().Get("id")
 	if artistID == "" {
-		fmt.Println(w, "Missing artist ID", http.StatusBadRequest)
+		log.Printf("Missing artist ID: %d", http.StatusBadRequest)
 		error = append(error, "Missing artist ID")
 		ErrorHandler(w, r, http.StatusBadRequest, error)
 		return
@@ -36,7 +41,7 @@ func LocationsHandler(w http.ResponseWriter, r *http.Request) {
 	// Make the GET request to fetch location data
 	resp, err := client.Get("https://groupietrackers.herokuapp.com/api/locations") // Update with correct URL
 	if err != nil {
-		fmt.Println(w, "Failed to fetch data: "+err.Error(), http.StatusInternalServerError)
+		log.Printf("Failed to fetch data: %s",err)
 		error = append(error, "Internal Server Error")
 		ErrorHandler(w, r, http.StatusInternalServerError, error)
 		return
@@ -46,7 +51,7 @@ func LocationsHandler(w http.ResponseWriter, r *http.Request) {
 	// Read and parse the JSON response
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(w, "Failed to read response", http.StatusInternalServerError)
+		log.Printf("Failed to read response: %s", err)
 		error = append(error, "Internal Server Error")
 		ErrorHandler(w, r, http.StatusInternalServerError, error)
 		return
@@ -55,7 +60,7 @@ func LocationsHandler(w http.ResponseWriter, r *http.Request) {
 	var locations Locations
 	err = json.Unmarshal(body, &locations)
 	if err != nil {
-		fmt.Println(w, "Failed to parse JSON", http.StatusInternalServerError)
+		log.Printf("Failed to parse JSON: %s",err)
 		error = append(error, "Internal Server Error")
 		ErrorHandler(w, r, http.StatusInternalServerError, error)
 		return
@@ -71,7 +76,7 @@ func LocationsHandler(w http.ResponseWriter, r *http.Request) {
 	for _, loc := range locations.Index {
 		id, err := strconv.Atoi(artistID)
 		if err != nil {
-			fmt.Println(w, "Invalid artist ID", http.StatusBadRequest)
+			log.Printf("Invalid artist ID: %s", err)
 			error = append(error, "Invalid artist ID")
 			ErrorHandler(w, r, http.StatusBadRequest, error)
 			return
@@ -83,7 +88,7 @@ func LocationsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if !found {
-		fmt.Println(w, "Artist ID not found", http.StatusBadRequest)
+		log.Printf("Artist ID not found %d", http.StatusBadRequest)
 		error = append(error, "Artist ID not found")
 		ErrorHandler(w, r, http.StatusBadRequest, error)
 		return
@@ -91,7 +96,7 @@ func LocationsHandler(w http.ResponseWriter, r *http.Request) {
 	// Return the location data as JSON
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(locationData); err != nil {
-		fmt.Println(w, "Failed to encode JSON", http.StatusInternalServerError)
+		log.Printf("Failed to encode JSON: %s", err)
 		error = append(error, "Internal Server Error")
 		ErrorHandler(w, r, http.StatusInternalServerError, error)
 		return

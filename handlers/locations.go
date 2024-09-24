@@ -30,7 +30,7 @@ func LocationsHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Create a custom HTTP client with a timeout
 	client := &http.Client{
-		Timeout: 10 * time.Second, // 10-second timeout
+		Timeout: 20 * time.Second, // 20-second timeout
 	}
 
 	// Make the GET request to fetch location data

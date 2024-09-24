@@ -11,6 +11,10 @@ import (
 )
 
 func main() {
+	if len(os.Args) != 1 {
+		fmt.Println("Usage: go run .")
+		os.Exit(1)
+	}
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
@@ -36,6 +40,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		handlers.LocationsHandler(w, r)
 	case "/dates":
 		handlers.DatesHandler(w, r)
+	case "/relations":
+		handlers.RelationHandler(w, r)
 	default:
 		handlers.ErrorHandler(w, r, http.StatusNotFound, []string{"Page not found"})
 	}

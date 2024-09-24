@@ -9,22 +9,22 @@ import (
 	"time"
 )
 
-// Struct to hold the dates data
-type Dates struct {
+type Relations struct {
 	Index []struct {
-		ID    int      `json:"id"`
-		Dates []string `json:"dates"`
+		ID             int                 `json:"id"`
+		DatesLocations map[string][]string `json:"datesLocations"` // Map Location to Dates
 	} `json:"index"`
 }
 
-func DatesHandler(w http.ResponseWriter, r *http.Request) {
+func RelationHandler(w http.ResponseWriter, r *http.Request) {
 	var error []string
+
 	// Get the artist ID from the query parameters
 	artistID := r.URL.Query().Get("id")
 	if artistID == "" {
-		fmt.Println(w, "Missing artist ID", http.StatusMethodNotAllowed)
+		fmt.Println(w, "Missing artist ID", http.StatusBadRequest)
 		error = append(error, "Missing artist ID")
-		ErrorHandler(w, r, http.StatusMethodNotAllowed, error)
+		ErrorHandler(w, r, http.StatusBadRequest, error)
 		return
 	}
 
@@ -33,8 +33,8 @@ func DatesHandler(w http.ResponseWriter, r *http.Request) {
 		Timeout: 20 * time.Second, // 20-second timeout
 	}
 
-	// Make the GET request to fetch dates data
-	resp, err := client.Get("https://groupietrackers.herokuapp.com/api/dates") // Update with the correct URL
+	// Make the GET request to fetch relation data
+	resp, err := client.Get("https://groupietrackers.herokuapp.com/api/relation")
 	if err != nil {
 		fmt.Println(w, "Failed to fetch data: "+err.Error(), http.StatusInternalServerError)
 		error = append(error, "Internal Server Error")
@@ -52,37 +52,36 @@ func DatesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var dates Dates
-	err = json.Unmarshal(body, &dates)
+	var relations Relations
+	err = json.Unmarshal(body, &relations)
 	if err != nil {
-		http.Error(w, "Failed to parse JSON", http.StatusInternalServerError)
+		fmt.Println(w, "Failed to parse JSON", http.StatusInternalServerError)
 		error = append(error, "Internal Server Error")
 		ErrorHandler(w, r, http.StatusInternalServerError, error)
 		return
 	}
 
-	// Find the dates data for the requested artist ID
-	var datesData struct {
-		ID    int      `json:"id"`
-		Dates []string `json:"dates"`
+	// Find the relation data for the requested artist ID
+	var relationData struct {
+		ID             int                 `json:"id"`
+		DatesLocations map[string][]string `json:"datesLocations"` // Map Location to Dates
 	}
 	found := false
-	for _, date := range dates.Index {
+	for _, rel := range relations.Index {
 		id, err := strconv.Atoi(artistID)
 		if err != nil {
-			http.Error(w, "Invalid artist ID", http.StatusBadRequest)
-			error = append(error, "Invalid artists ID")
+			fmt.Println(w, "Invalid artist ID", http.StatusBadRequest)
+			error = append(error, "Invalid artist ID")
 			ErrorHandler(w, r, http.StatusBadRequest, error)
 			return
 		}
-		if date.ID == id {
-			datesData = date
+		if rel.ID == id {
+			relationData = rel
 			found = true
 			break
 		}
 	}
 
-	// If the artist ID is not found, return an error
 	if !found {
 		fmt.Println(w, "Artist ID not found", http.StatusBadRequest)
 		error = append(error, "Artist ID not found")
@@ -90,12 +89,9 @@ func DatesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return the dates data as JSON
-	w.Header().Set("Access-Control-Allow-Origin", "http://127.0.0.1:8080")
-	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	// Return the relation data as JSON
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(datesData); err != nil {
+	if err := json.NewEncoder(w).Encode(relationData); err != nil {
 		fmt.Println(w, "Failed to encode JSON", http.StatusInternalServerError)
 		error = append(error, "Internal Server Error")
 		ErrorHandler(w, r, http.StatusInternalServerError, error)

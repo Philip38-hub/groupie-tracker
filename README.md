@@ -10,7 +10,6 @@ Groupie Trackers is a web application designed to visualize and interact with da
 - [Usage](#usage)
   - [API Integration](#api-integration)
   - [Website Design](#website-design)
-  - [Client-Server Interaction](#client-server-interaction)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -48,13 +47,16 @@ The project displays this data using various visualizations and allows interacti
 
 Fetch data from the provided API endpoints to populate the website:
 
-```javascript
-// Example of fetching artist data
-fetch('API_URL/artists')
-    .then(response => response.json())
-    .then(data => {
-        // Handle the artist data
-    });
+```go
+// Example of fetching location data
+resp, err := client.Get("https://groupietrackers.herokuapp.com/api/locations") // Update with correct URL
+	if err != nil {
+		fmt.Println(w, "Failed to fetch data: "+err.Error(), http.StatusInternalServerError)
+		error = append(error, "Internal Server Error")
+		ErrorHandler(w, r, http.StatusInternalServerError, error)
+		return
+	}
+	defer resp.Body.Close()
 ```
 
 ### Website Design
@@ -63,19 +65,6 @@ Design the website to display:
 - **Home Page**: Artist profiles using cards or blocks.
 - **Concert Info Page**: Tables or lists showing concert locations and dates.
 - **Data Visualizations**: Use libraries like Chart.js or D3.js to create graphs and timelines.
-
-### Client-Server Interaction
-
-Implement features that trigger events and communicate with the server. For example, a search feature for concerts:
-
-```javascript
-document.querySelector('#searchBtn').addEventListener('click', async () => {
-    const artistName = document.querySelector('#artistInput').value;
-    const response = await fetch(`API_URL/search?artist=${artistName}`);
-    const data = await response.json();
-    displayConcerts(data);
-});
-```
 
 ## Contributing
 
@@ -94,6 +83,11 @@ Contributions are welcome! To contribute:
    git push origin feature-name
    ```
 5. Open a pull request.
+
+## Developers
+1. [Philip](https://github.com/Philip38-hub)
+2. [Antony](https://github.com/antmusumba)
+3. [vomolo](https://github.com/vomolo)
 
 ## License
 
